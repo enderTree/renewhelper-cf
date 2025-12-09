@@ -998,6 +998,8 @@ async function checkAndRenew(env, isSched, lang = "zh") {
           old: it.lastRenewDate,
           new: newD,
           note: msg,
+          cycleUnit: it.cycleUnit || "day",
+          createDate: it.createDate,
         });
         it.lastRenewDate = newD;
         items[i] = it;
@@ -1070,20 +1072,40 @@ async function checkAndRenew(env, isSched, lang = "zh") {
     let pushBody = [];
     if (dis.length) {
       pushBody.push(`【${t("secDis", lang)}】`);
-      dis.forEach((x, i) =>
+      dis.forEach((x, i) => {
+        // 计算周年数（仅对年周期单位显示）
+        let yearSuffix = "";
+        if (x.cycleUnit === "year" && x.createDate && x.nextDueDate) {
+          const createYear = parseInt(x.createDate.split("-")[0]);
+          const nextYear = parseInt(x.nextDueDate.split("-")[0]);
+          const years = nextYear - createYear;
+          if (years > 0) {
+            yearSuffix = lang === "zh" ? `（${years} 年）` : ` (${years} yr)`;
+          }
+        }
         pushBody.push(
           `${i + 1}. ${x.name} (${t("overdue", lang, Math.abs(x.daysLeft))} / ${
             x.nextDueDate
-          })\n${x.note}`
-        )
-      );
+          })${yearSuffix}\n${x.note}`
+        );
+      });
       pushBody.push("");
     }
     if (upd.length) {
       pushBody.push(`【${t("secRen", lang)}】`);
-      upd.forEach((x, i) =>
-        pushBody.push(`${i + 1}. ${x.name}: ${x.old} -> ${x.new}\n${x.note}`)
-      );
+      upd.forEach((x, i) => {
+        // 计算周年数（仅对年周期单位显示）
+        let yearSuffix = "";
+        if (x.cycleUnit === "year" && x.createDate && x.new) {
+          const createYear = parseInt(x.createDate.split("-")[0]);
+          const nextYear = parseInt(x.new.split("-")[0]);
+          const years = nextYear - createYear;
+          if (years > 0) {
+            yearSuffix = lang === "zh" ? `（${years} 年）` : ` (${years} yr)`;
+          }
+        }
+        pushBody.push(`${i + 1}. ${x.name}: ${x.old} -> ${x.new}${yearSuffix}\n${x.note}`);
+      });
       pushBody.push("");
     }
     if (trig.length) {
@@ -1095,8 +1117,18 @@ async function checkAndRenew(env, isSched, lang = "zh") {
             : x.daysLeft < 0
             ? t("overdue", lang, Math.abs(x.daysLeft))
             : t("left", lang, x.daysLeft);
+        // 计算周年数（仅对年周期单位显示）
+        let yearSuffix = "";
+        if (x.cycleUnit === "year" && x.createDate && x.nextDueDate) {
+          const createYear = parseInt(x.createDate.split("-")[0]);
+          const nextYear = parseInt(x.nextDueDate.split("-")[0]);
+          const years = nextYear - createYear;
+          if (years > 0) {
+            yearSuffix = lang === "zh" ? `（${years} 年）` : ` (${years} yr)`;
+          }
+        }
         pushBody.push(
-          `${i + 1}. ${x.name}: ${dayStr} (${x.nextDueDate})\n${x.note}`
+          `${i + 1}. ${x.name}: ${dayStr} (${x.nextDueDate})${yearSuffix}\n${x.note}`
         );
       });
     }
@@ -1929,7 +1961,7 @@ const HTML = `<!DOCTYPE html>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                         <el-form-item class="!mb-0">
                             <template #label><div class="flex items-center gap-2"><span>{{ t('createDate') }}</span><span v-if="form.useLunar && form.createDate" class="text-[12px] font-bold text-purple-600 font-mono ml-1">{{ getLunarStr(form.createDate).replace('农历: ','') }}</span></div></template>
-                            <el-date-picker v-model="form.createDate" type="date" value-format="YYYY-MM-DD" style="width:100%" class="!w-full" :disabled="isEdit" popper-class="lunar-popper"><template #default="c"><div class="lunar-cell"><div class="view-date"><span class="solar">{{c.text}}</span><span class="lunar">{{getSmartLunarText(c)}}</span></div><div class="view-month">{{getMonthStr(c.text)}}</div><div class="view-year"><span class="y-num">{{c.text}}</span><span class="y-ganzhi">{{getYearGanZhi(c.text)}}</span></div></div></template></el-date-picker>
+                            <el-date-picker v-model="form.createDate" type="date" value-format="YYYY-MM-DD" style="width:100%" class="!w-full" popper-class="lunar-popper"><template #default="c"><div class="lunar-cell"><div class="view-date"><span class="solar">{{c.text}}</span><span class="lunar">{{getSmartLunarText(c)}}</span></div><div class="view-month">{{getMonthStr(c.text)}}</div><div class="view-year"><span class="y-num">{{c.text}}</span><span class="y-ganzhi">{{getYearGanZhi(c.text)}}</span></div></div></template></el-date-picker>
                         </el-form-item>
                         <el-form-item class="!mb-0">
                             <template #label><div class="flex items-center gap-2"><span>{{ t('lastRenew') }}</span><span v-if="form.useLunar && form.lastRenewDate" class="text-[12px] font-bold text-purple-600 font-mono ml-1">{{ getLunarStr(form.lastRenewDate).replace('农历: ','') }}</span></div></template>
