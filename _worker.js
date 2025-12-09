@@ -2286,8 +2286,8 @@ const HTML = `<!DOCTYPE html>
                 const saveItem = async () => {
                     if(!form.value.name.trim()) return ElMessage.error(t('msg.nameReq'));
                     if(list.value.some(i=>i.name.toLowerCase()===form.value.name.toLowerCase() && i.id!==form.value.id)) return ElMessage.error(t('msg.nameExist'));
-                    if(form.value.lastRenewDate < form.value.createDate) return ElMessage.error(t('msg.dateError'));
-                    if(form.value.lastRenewDate > new Date().toISOString().split('T')[0]) return ElMessage.error(t('msg.futureError'));
+                    // if(form.value.lastRenewDate < form.value.createDate) return ElMessage.error(t('msg.dateError'));
+                    // if(form.value.lastRenewDate > new Date().toISOString().split('T')[0]) return ElMessage.error(t('msg.futureError'));
                     
                     let newList=[...list.value];
                     if(isEdit.value) { const i=newList.findIndex(x=>x.id===form.value.id); if(i!==-1) newList[i]=form.value; }
