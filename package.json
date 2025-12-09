@@ -1,0 +1,17 @@
+{
+  "name": "renewhelper-cf",
+  "version": "1.3.2",
+  "description": "A serverless service lifecycle manager on Cloudflare Workers",
+  "main": "_worker.js",
+  "keywords":[
+     "cloudflare-workers",
+     "renew",
+     "subscribe",
+     "notify",
+     "icalendar"
+  ],
+  "author": "LOSTFREE",
+  "license": "MIT"
+
+}
+
