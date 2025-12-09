@@ -1,10 +1,10 @@
 /**
- * Cloudflare Worker: RenewHelper (v1.3.2)
+ * Cloudflare Worker: LifeReminder (v2.0.0)
  * Author: LOSTFREE
- * Features: Multi-Channel Notify, Import/Export, Channel Test, Bilingual UI, Precise ICS Alarm
+ * Features: Birthday/Anniversary/Festival Reminder, Lunar Calendar, Multi-Channel Notify, ICS Sync
  */
 
-const APP_VERSION = "v1.3.2";
+const APP_VERSION = "v2.0.0";
 
 // ==========================================
 // 1. Core Logic (Lunar & Calc)
@@ -611,7 +611,7 @@ const Notifier = {
       const r = await fetch(
         `${server}/${c.key}/${encodeURIComponent(title)}/${encodeURIComponent(
           body
-        )}?group=RenewHelper`
+        )}?group=LifeReminder`
       );
       return r.ok ? "OK" : "FAIL";
     },
@@ -786,18 +786,18 @@ function calculateStatus(item, timezone = "UTC") {
 
 const I18N = {
   zh: {
-    scan: "扫描 %s 个服务",
-    autoDisable: "🚫 [%s] 过期 %s 天，已自动禁用",
-    autoRenew: "🔄 [%s] 自动续期成功",
-    today: "今天到期",
-    overdue: "过期 %s 天",
-    left: "剩 %s 天",
+    scan: "扫描 %s 个事件",
+    autoDisable: "🚫 [%s] 已过 %s 天，已自动禁用",
+    autoRenew: "🔄 [%s] 已进入下一周期",
+    today: "就是今天",
+    overdue: "已过 %s 天",
+    left: "还剩 %s 天",
     checkLog: "[CHECK] %s | %s",
     thres: "(阈值: %s)",
-    pushTitle: "RenewHelper 报告",
-    secDis: "🚫 服务已禁用",
-    secRen: "🔄 服务已续期",
-    secAle: "⏳ 服务即将到期",
+    pushTitle: "时光提醒",
+    secDis: "🚫 事件已禁用",
+    secRen: "🔄 事件已进入新周期",
+    secAle: "⏳ 事件即将到来",
     note: "备注",
     lblEnable: "启用",
     lblToken: "令牌 (Token)",
@@ -811,18 +811,18 @@ const I18N = {
     btnTest: "发送测试",
   },
   en: {
-    scan: "Scan %s items",
-    autoDisable: "🚫 [%s] Overdue %sd, Disabled",
-    autoRenew: "🔄 [%s] Auto Renewed",
-    today: "Due Today",
-    overdue: "Overdue %sd",
-    left: "Left %sd",
+    scan: "Scan %s events",
+    autoDisable: "🚫 [%s] %sd overdue, Disabled",
+    autoRenew: "🔄 [%s] Moved to next cycle",
+    today: "Today",
+    overdue: "%sd ago",
+    left: "%sd left",
     checkLog: "[CHECK] %s | %s",
     thres: "(Thres: %s)",
-    pushTitle: "RenewHelper Report",
-    secDis: "🚫 Services Disabled",
-    secRen: "🔄 Services Renewed",
-    secAle: "⏳ Expiring Soon",
+    pushTitle: "LifeReminder",
+    secDis: "🚫 Events Disabled",
+    secRen: "🔄 Events Cycled",
+    secAle: "⏳ Events Coming Soon",
     note: "Note",
     lblEnable: "Enable",
     lblToken: "Token",
@@ -1304,7 +1304,7 @@ app.get(
     return new Response(JSON.stringify(exportData, null, 2), {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="RenewHelper_Backup_${
+        "Content-Disposition": `attachment; filename="LifeReminder_Backup_${
           new Date().toISOString().split("T")[0]
         }.json"`,
       },
@@ -1347,7 +1347,7 @@ app.post(
       if (!Notifier.adapters[channel]) return error("INVALID_CHANNEL");
       const res = await Notifier.adapters[channel](
         config,
-        "RenewHelper Test",
+        "LifeReminder Test",
         `Test message for channel: ${channel}`
       );
       return res === "OK"
@@ -1409,9 +1409,9 @@ app.get("/api/calendar.ics", async (req, env, url) => {
   const parts = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//RenewHelper//Calendar//EN",
+    "PRODID:-//LifeReminder//Calendar//EN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:RenewHelper",
+    "X-WR-CALNAME:LifeReminder",
     "REFRESH-INTERVAL;VALUE=DURATION:P1D",
     "CALSCALE:GREGORIAN",
     `X-WR-TIMEZONE:${userTz}`,
@@ -1503,7 +1503,7 @@ const HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RenewHelper ${APP_VERSION}</title>
+    <title>LifeReminder ${APP_VERSION}</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg width='56' height='56' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cdefs%3E%3ClinearGradient id='c1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%2322d3ee'/%3E%3C/linearGradient%3E%3ClinearGradient id='h1' x1='108.5' y1='7.8' x2='122.4' y2='21.7' gradientTransform='matrix(0,0.433,-2.309,0,99.8,-0.06)' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%2322d3ee'/%3E%3C/linearGradient%3E%3ClinearGradient id='b1' x1='30.4' y1='54.5' x2='30.4' y2='14.8' gradientTransform='scale(0.694,1.441)' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' style='stop-color:%2326afe1;stop-opacity:1'/%3E%3Cstop offset='1' style='stop-color:%23ee5a22;stop-opacity:0.7'/%3E%3C/linearGradient%3E%3ClinearGradient id='b2' xlink:href='%23b1' x1='16' y1='47.2' x2='71.3' y2='47.2' gradientUnits='userSpaceOnUse'/%3E%3Cfilter id='f1' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeGaussianBlur in='SourceGraphic' stdDeviation='1.5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M50 5 L93 30 V70 L50 95 L7 70 V30 Z' stroke='url(%23c1)' stroke-width='4' fill='none' filter='url(%23f1)' stroke-linejoin='round'/%3E%3Cpath d='M7 30 L30 50 M93 30 L70 50 M7 70 L30 50 M93 70 L70 50' stroke='url(%23c1)' stroke-width='1' opacity='0.3'/%3E%3Cg filter='url(%23f1)'%3E%3Ccircle cx='50' cy='50' r='38' stroke='url(%23c1)' stroke-width='1' opacity='0.2' stroke-dasharray='3 3'/%3E%3Ccircle cx='50' cy='50' r='26' stroke='url(%23c1)' stroke-width='3' fill='none'/%3E%3Cpath d='M50 18 V24 M82 50 H76 M50 82 V76 M18 50 H24 M72 28 L67 33 M72 72 L67 67 M28 72 L33 67 M28 28 L33 33' stroke='url(%23c1)' stroke-width='4' stroke-linecap='round'/%3E%3C/g%3E%3Cg filter='url(%23f1)'%3E%3Ccircle cx='50' cy='50' r='5' fill='url(%23c1)'/%3E%3Cpath d='M50 50 L47 20 L50 18 L53 20 Z' fill='url(%23c1)'/%3E%3Cpath d='M47 20 L50 12 L53 20 L50 18 Z' fill='white'/%3E%3Cpath d='m 49.8,49.9 30,-3 2,3 -2,3 z' style='fill:url(%23h1)'/%3E%3Cpath d='M 45.1,22 C 58.7,24.2 68.3,37.4 66.1,51 63.9,64.7 50.7,74.2 37,72 30.2,71 23.9,67 20,61.2' style='fill:none;stroke:url(%23b2);stroke-width:9.75;stroke-linecap:butt' transform='matrix(-0.122,0.691,-0.691,-0.122,87.8,27.7)'/%3E%3C/g%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
     <script>
@@ -1757,9 +1757,9 @@ const HTML = `<!DOCTYPE html>
                 </div>
                         <div class="flex flex-col">
                             <div class="flex items-baseline flex-wrap gap-x-3 gap-y-1">
-                                <h1 class="text-4xl font-black tracking-tighter text-textMain">RenewHelper</h1>
+                                <h1 class="text-4xl font-black tracking-tighter text-textMain">LifeReminder</h1>
                                 <span class="text-2xl text-slate-300 font-light hidden sm:inline-block">|</span>
-                                <span class="text-2xl font-bold text-blue-600 tracking-wider" style="font-family: 'Microsoft YaHei', sans-serif;">时序·守望</span>
+                                <span class="text-2xl font-bold text-blue-600 tracking-wider" style="font-family: 'Microsoft YaHei', sans-serif;">时光提醒</span>
                                 <div class="sys-beat-container ml-1 pl-3 border-l border-slate-300 self-center" title="SYSTEM ONLINE" style="height: 20px">
                                     <div class="sys-beat-bar" style="animation-delay:0s"></div><div class="sys-beat-bar" style="animation-delay:0.15s"></div><div class="sys-beat-bar" style="animation-delay:0.3s"></div>
                                 </div>
@@ -1767,13 +1767,22 @@ const HTML = `<!DOCTYPE html>
                             <div class="flex items-center mt-1 flex-wrap gap-2">
                                 <p class="text-[10px] text-gray-400 font-mono tracking-[0.15em] uppercase whitespace-nowrap">Service Lifecycle Management</p>
                                 <span class="text-[10px] text-blue-400 font-bold font-mono">///</span>
-                                <p class="text-[10px] text-gray-500 font-bold tracking-[0.1em] whitespace-nowrap" style="font-family: 'Microsoft YaHei', sans-serif;">分布式云资产全周期托管中枢</p>
+                                <p class="text-[10px] text-gray-500 font-bold tracking-[0.1em] whitespace-nowrap" style="font-family: 'Microsoft YaHei', sans-serif;">{{ lang==='zh'?'生日·纪念日·节日 | 永不错过重要时刻':'Birthday·Anniversary·Festival | Never miss important moments' }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2 p-3 mecha-panel">
                         <el-button class="mecha-btn !bg-emerald-600 !text-white" :icon="VideoPlay" @click="runCheck" :loading="checking">{{ t('check') }}</el-button>
-                        <el-button class="mecha-btn !bg-blue-600 !text-white" :icon="Plus" @click="openAdd">{{ t('add') }}</el-button>
+                        <el-dropdown trigger="click" @command="handleAddCommand">
+                            <el-button class="mecha-btn !bg-blue-600 !text-white" :icon="Plus">{{ t('add') }} <el-icon class="ml-1"><ArrowDown /></el-icon></el-button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item command="custom"><el-icon><Edit /></el-icon> {{ lang==='zh'?'自定义事件':'Custom Event' }}</el-dropdown-item>
+                                    <el-dropdown-item divided disabled><span class="text-xs text-gray-400">{{ lang==='zh'?'━━ 快速添加节日 ━━':'━━ Quick Add Festival ━━' }}</span></el-dropdown-item>
+                                    <el-dropdown-item v-for="f in presetFestivals" :key="f.id" :command="f.id"><span>{{ f.icon }} {{ lang==='zh'?f.nameZh:f.nameEn }}</span><span class="text-xs text-gray-400 ml-2">{{ f.date }}</span></el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                         <div class="w-px h-8 bg-border mx-1 self-center"></div>
                         <el-button class="mecha-btn !bg-indigo-600 !text-white" :icon="Setting" @click="openSettings">{{ t('settings') }}</el-button>
                         <el-button class="mecha-btn !bg-amber-600 !text-white" :icon="Document" @click="openHistoryLogs">{{ t('logs') }}</el-button>
@@ -1929,7 +1938,7 @@ const HTML = `<!DOCTYPE html>
 
                 <div class="mt-8 py-6 text-center border-t border-slate-200/60">
                     <p class="text-[10px] text-gray-400 font-mono tracking-[0.2em] uppercase flex justify-center items-center gap-1">
-                        &copy; 2025 <a href="https://github.com/ieax/renewhelper" target="_blank" class="font-bold text-slate-600 hover:text-blue-600 transition-colors border-b border-dashed border-slate-300 hover:border-blue-600 pb-0.5 mx-1 decoration-0">RenewHelper</a>
+                        &copy; 2025 <a href="https://github.com/ieax/lifereminder" target="_blank" class="font-bold text-slate-600 hover:text-blue-600 transition-colors border-b border-dashed border-slate-300 hover:border-blue-600 pb-0.5 mx-1 decoration-0">LifeReminder</a>
                         <span class="text-blue-500 font-bold">${APP_VERSION}</span><span class="mx-2 opacity-30">|</span>DESIGNED BY <span class="font-bold text-slate-600">LOSTFREE</span>
                     </p>
                 </div>                  
@@ -2142,21 +2151,21 @@ const HTML = `<!DOCTYPE html>
     <script>
         const { createApp, ref, computed, onMounted, nextTick, reactive,watch } = Vue;
         const { ElMessage, ElMessageBox } = ElementPlus;
-        const { Edit, Delete, Plus, VideoPlay, Setting, Bell, Document, Lock, Monitor, SwitchButton, Calendar, Timer, Files, AlarmClock, Warning, Search, Cpu, Upload, Download, Link, Message, Promotion, Iphone, Moon, Sunny, RefreshRight, ChatDotRound, ChatLineSquare } = ElementPlusIconsVue;
+        const { Edit, Delete, Plus, VideoPlay, Setting, Bell, Document, Lock, Monitor, SwitchButton, Calendar, Timer, Files, AlarmClock, Warning, Search, Cpu, Upload, Download, Link, Message, Promotion, Iphone, Moon, Sunny, RefreshRight, ChatDotRound, ChatLineSquare, ArrowDown } = ElementPlusIconsVue;
         const ZhCn = window.ElementPlusLocaleZhCn || {};
         const messages = {
-            zh: { secPref: '偏好设置',manualRenew: '手动续期',tipToggle: '切换状态',tipRenew: '手动续期',tipEdit: '编辑服务',tipDelete: '删除服务',secNotify: '通知配置',secData: '数据管理',lblIcsTitle: '日历订阅',lblIcsUrl: '订阅地址 (iOS/Google)',btnCopy: '复制',btnResetToken: '重置令牌',loginTitle:'身份验证',passwordPlaceholder:'请输入访问密钥/Authorization Key',unlockBtn:'解锁终端/UNLOCK',check:'立即检查',add:'新增服务',settings:'系统设置',logs:'运行日志',logout:'安全退出',totalServices:'服务总数',expiringSoon:'即将到期',expiredAlert:'已过期 / 警告',serviceName:'服务名称',type:'类型',nextDue:'下次到期',uptime:'已运行',lastRenew:'上次续费',cyclePeriod:'周期',actions:'操作',cycle:'循环订阅',reset:'到期重置',disabled:'已停用',days:'天',daysUnit:'天',typeReset:'到期重置',typeCycle:'循环订阅',lunarCal:'农历',lbOffline:'离线',unit:{day:'天',month:'月',year:'年'},editService:'编辑服务',newService:'新增服务',formName:'名称',namePlaceholder:'例如: Netflix',formType:'模式',createDate:'创建时间',interval:'周期时长',note:'备注信息',status:'状态',active:'启用',disabledText:'禁用',cancel:'取消',save:'保存数据',saveSettings:'保存配置',settingsTitle:'系统设置',setNotify:'通知配置',pushSwitch:'推送总开关',pushUrl:'Webhook 地址',notifyThreshold:'提醒阈值',setAuto:'自动化配置',autoRenewSwitch:'自动续期',autoRenewThreshold:'自动续期阈值',autoDisableThreshold:'自动禁用阈值',daysOverdue:'天后触发',sysLogs:'系统日志',execLogs:'执行记录',clearHistory:'清空历史',noLogs:'无记录',liveLog:'实时终端',btnExport: '导出备份',btnImport: '恢复备份',btnTest: '发送测试',btnRefresh:'刷新日志',
+            zh: { secPref: '偏好设置',manualRenew: '标记完成',tipToggle: '切换状态',tipRenew: '标记完成',tipEdit: '编辑事件',tipDelete: '删除事件',secNotify: '通知配置',secData: '数据管理',lblIcsTitle: '日历订阅',lblIcsUrl: '订阅地址 (iOS/Google)',btnCopy: '复制',btnResetToken: '重置令牌',loginTitle:'身份验证',passwordPlaceholder:'请输入访问密钥/Authorization Key',unlockBtn:'解锁终端/UNLOCK',check:'立即检查',add:'新增事件',settings:'系统设置',logs:'运行日志',logout:'安全退出',totalServices:'事件总数',expiringSoon:'即将到来',expiredAlert:'今日 / 已过',serviceName:'事件名称',type:'类型',nextDue:'下次日期',uptime:'已过',lastRenew:'起始日期',cyclePeriod:'周期',actions:'操作',cycle:'周期事件',reset:'单次事件',disabled:'已停用',days:'天',daysUnit:'天',typeReset:'单次事件',typeCycle:'周期事件',lunarCal:'农历',lbOffline:'离线',unit:{day:'天',month:'月',year:'年'},editService:'编辑事件',newService:'新增事件',formName:'名称',namePlaceholder:'例如: 爸爸生日',formType:'模式',createDate:'起始日期',interval:'周期时长',note:'备注信息',status:'状态',active:'启用',disabledText:'禁用',cancel:'取消',save:'保存数据',saveSettings:'保存配置',settingsTitle:'系统设置',setNotify:'通知配置',pushSwitch:'推送总开关',pushUrl:'Webhook 地址',notifyThreshold:'提醒阈值',setAuto:'自动化配置',autoRenewSwitch:'自动周期',autoRenewThreshold:'自动周期阈值',autoDisableThreshold:'自动禁用阈值',daysOverdue:'天后触发',sysLogs:'系统日志',execLogs:'执行记录',clearHistory:'清空历史',noLogs:'无记录',liveLog:'实时终端',btnExport: '导出备份',btnImport: '恢复备份',btnTest: '发送测试',btnRefresh:'刷新日志',
             lblEnable: '启用', lblToken: '令牌 (Token)', lblApiKey: 'API Key', lblChatId: '会话ID', 
             lblServer: '服务器URL', lblDevKey: '设备Key', lblFrom: '发件人', lblTo: '收件人',
             lblFeishu: '飞书', lblWeixin: '企业微信', lblWebhookUrl: 'Webhook URL',
             lblNotifyTime: '提醒时间', btnResetToken: '重置令牌',
-            tag:{alert:'触发提醒',renew:'自动续期',disable:'自动禁用',normal:'检查正常'},msg:{confirmRenew: '确认将 [%s] 的续费日期更新为今天吗？',renewSuccess: '续期成功！日期已更新: %s -> %t',tokenReset: '令牌已重置，请更新订阅地址', copyOk: '链接已复制', exportSuccess: '备份已下载',importSuccess: '数据恢复成功，即将刷新',importFail: '导入失败，请检查文件格式',passReq:'请输入密码',saved:'保存成功',saveFail:'保存失败',cleared:'已清空',clearFail:'清空失败',loginFail:'验证失败',loadLogFail:'日志加载失败',confirmDel:'确认删除此项目?',dateError:'上次续费日期不能早于创建日期',nameReq:'服务名称不能为空',nameExist:'服务名称已存在',futureError:'上次续期不能是未来时间',serviceDisabled:'服务已停用',serviceEnabled:'服务已启用',execFinish: '执行完毕!'},tags:'标签',tagPlaceholder:'输入标签回车创建',searchPlaceholder:'搜索标题或备注...',tagsCol:'标签',tagAll:'全部',useLunar:'农历周期',lunarTip:'按农历日期计算周期',yes:'是',no:'否',timezone:'偏好时区',disabledFilter:'已停用',policyConfig:'自动化策略',policyNotify:'提醒提前期',policyAuto:'自动续期',policyRenewDay:'过期续期天数',useGlobal:'全局默认',autoRenewOnDesc:'过期自动续期',autoRenewOffDesc:'过期自动禁用',},
-            en: { secPref: 'PREFERENCES',manualRenew: 'Quick Renew',tipToggle: 'Toggle Status',tipRenew: 'Quick Renew',tipEdit: 'Edit Service',tipDelete: 'Delete Service',secNotify: 'NOTIFICATIONS',secData: 'DATA MANAGEMENT',lblIcsTitle: 'CALENDAR SUBSCRIPTION',lblIcsUrl: 'ICS URL (iOS/Google Calendar)',btnCopy: 'COPY',btnResetToken: 'RESET TOKEN',loginTitle:'SYSTEM ACCESS',passwordPlaceholder:'Authorization Key',unlockBtn:'UNLOCK TERMINAL',check:'CHECK',add:'ADD NEW',settings:'CONFIG',logs:'LOGS',logout:'LOGOUT',totalServices:'TOTAL SERVICES',expiringSoon:'EXPIRING SOON',expiredAlert:'EXPIRED / ALERT',serviceName:'SERVICE NAME',type:'TYPE',nextDue:'NEXT DUE',uptime:'UPTIME',lastRenew:'LAST RENEW',cyclePeriod:'CYCLE',actions:'ACTIONS',cycle:'CYCLE',reset:'RESET',disabled:'DISABLED',days:'DAYS',daysUnit:'DAYS',typeReset:'RESET',typeCycle:'CYCLE',lunarCal:'Lunar',lbOffline:'OFFLINE',unit:{day:'DAY',month:'MTH',year:'YR'},editService:'EDIT SERVICE',newService:'NEW SERVICE',formName:'NAME',namePlaceholder:'e.g. Netflix',formType:'MODE',createDate:'CREATE DATE',interval:'INTERVAL',note:'NOTE',status:'STATUS',active:'ACTIVE',disabledText:'DISABLED',cancel:'CANCEL',save:'SAVE DATA',saveSettings:'SAVE CONFIG',settingsTitle:'SYSTEM CONFIG',setNotify:'NOTIFICATION',pushSwitch:'MASTER PUSH',pushUrl:'WEBHOOK URL',notifyThreshold:'ALERT THRESHOLD',setAuto:'AUTOMATION',autoRenewSwitch:'AUTO RENEW',autoRenewThreshold:'RENEW AFTER',autoDisableThreshold:'DISABLE AFTER',daysOverdue:'DAYS OVERDUE',sysLogs:'SYSTEM LOGS',execLogs:'EXECUTION LOGS',clearHistory:'CLEAR HISTORY',noLogs:'NO DATA',liveLog:'LIVE TERMINAL',btnExport: 'Export Data',btnImport: 'Import Data',btnTest: 'Send Test',btnRefresh:'REFRESH',
+            tag:{alert:'触发提醒',renew:'自动周期',disable:'自动禁用',normal:'检查正常'},msg:{confirmRenew: '确认将 [%s] 的起始日期更新为今天吗？',renewSuccess: '更新成功！日期已更新: %s -> %t',tokenReset: '令牌已重置，请更新订阅地址', copyOk: '链接已复制', exportSuccess: '备份已下载',importSuccess: '数据恢复成功，即将刷新',importFail: '导入失败，请检查文件格式',passReq:'请输入密码',saved:'保存成功',saveFail:'保存失败',cleared:'已清空',clearFail:'清空失败',loginFail:'验证失败',loadLogFail:'日志加载失败',confirmDel:'确认删除此事件?',dateError:'起始日期不能早于创建日期',nameReq:'事件名称不能为空',nameExist:'事件名称已存在',futureError:'起始日期不能是未来时间',serviceDisabled:'事件已停用',serviceEnabled:'事件已启用',execFinish: '执行完毕!'},tags:'标签',tagPlaceholder:'生日、纪念日、节日...',searchPlaceholder:'搜索名称或备注...',tagsCol:'标签',tagAll:'全部',useLunar:'农历周期',lunarTip:'按农历日期计算周期（适合农历生日）',yes:'是',no:'否',timezone:'偏好时区',disabledFilter:'已停用',policyConfig:'自动化策略',policyNotify:'提醒提前期',policyAuto:'自动周期',policyRenewDay:'过期周期天数',useGlobal:'全局默认',autoRenewOnDesc:'过期自动进入下周期',autoRenewOffDesc:'过期自动禁用',},
+            en: { secPref: 'PREFERENCES',manualRenew: 'Mark Done',tipToggle: 'Toggle Status',tipRenew: 'Mark Done',tipEdit: 'Edit Event',tipDelete: 'Delete Event',secNotify: 'NOTIFICATIONS',secData: 'DATA MANAGEMENT',lblIcsTitle: 'CALENDAR SUBSCRIPTION',lblIcsUrl: 'ICS URL (iOS/Google Calendar)',btnCopy: 'COPY',btnResetToken: 'RESET TOKEN',loginTitle:'SYSTEM ACCESS',passwordPlaceholder:'Authorization Key',unlockBtn:'UNLOCK TERMINAL',check:'CHECK',add:'ADD NEW',settings:'CONFIG',logs:'LOGS',logout:'LOGOUT',totalServices:'TOTAL EVENTS',expiringSoon:'COMING SOON',expiredAlert:'TODAY / PAST',serviceName:'EVENT NAME',type:'TYPE',nextDue:'NEXT DATE',uptime:'PASSED',lastRenew:'START DATE',cyclePeriod:'CYCLE',actions:'ACTIONS',cycle:'RECURRING',reset:'ONE-TIME',disabled:'DISABLED',days:'DAYS',daysUnit:'DAYS',typeReset:'ONE-TIME',typeCycle:'RECURRING',lunarCal:'Lunar',lbOffline:'OFFLINE',unit:{day:'DAY',month:'MTH',year:'YR'},editService:'EDIT EVENT',newService:'NEW EVENT',formName:'NAME',namePlaceholder:'e.g. Dad Birthday',formType:'MODE',createDate:'START DATE',interval:'INTERVAL',note:'NOTE',status:'STATUS',active:'ACTIVE',disabledText:'DISABLED',cancel:'CANCEL',save:'SAVE DATA',saveSettings:'SAVE CONFIG',settingsTitle:'SYSTEM CONFIG',setNotify:'NOTIFICATION',pushSwitch:'MASTER PUSH',pushUrl:'WEBHOOK URL',notifyThreshold:'ALERT THRESHOLD',setAuto:'AUTOMATION',autoRenewSwitch:'AUTO CYCLE',autoRenewThreshold:'CYCLE AFTER',autoDisableThreshold:'DISABLE AFTER',daysOverdue:'DAYS OVERDUE',sysLogs:'SYSTEM LOGS',execLogs:'EXECUTION LOGS',clearHistory:'CLEAR HISTORY',noLogs:'NO DATA',liveLog:'LIVE TERMINAL',btnExport: 'Export Data',btnImport: 'Import Data',btnTest: 'Send Test',btnRefresh:'REFRESH',
             lblEnable: 'Enable', lblToken: 'Token', lblApiKey: 'API Key', lblChatId: 'Chat ID', 
             lblServer: 'Server URL', lblDevKey: 'Device Key', lblFrom: 'From Email', lblTo: 'To Email',
             lblFeishu: 'Feishu', lblWeixin: 'WeCom', lblWebhookUrl: 'Webhook URL',
             lblNotifyTime: 'Alarm Time', btnResetToken: 'RESET TOKEN',
-            tag:{alert:'ALERT',renew:'RENEWED',disable:'DISABLED',normal:'NORMAL'},msg:{confirmRenew: 'Renew [%s] to today based on your timezone?',renewSuccess: 'Renewed! Date updated: %s -> %t',tokenReset: 'Token Reset. Update your calendar apps.', copyOk: 'Link Copied', exportSuccess: 'Backup Downloaded',importSuccess: 'Restore Success, Refreshing...',importFail: 'Import Failed, Check File Format',passReq:'Password Required',saved:'Data Saved',saveFail:'Save Failed',cleared:'Cleared',clearFail:'Clear Failed',loginFail:'Access Denied',loadLogFail:'Load Failed',confirmDel:'Confirm Delete?',dateError:'Last renew date cannot be earlier than create date',nameReq:'Name Required',nameExist:'Name already exists',futureError:'Renew date cannot be in the future',serviceDisabled:'Service Disabled',serviceEnabled:'Service Enabled',execFinish: 'EXECUTION FINISHED!'},tags:'TAGS',tagPlaceholder:'Press Enter to create tag',searchPlaceholder:'Search...',tagsCol:'TAGS',tagAll:'ALL',useLunar:'Lunar Cycle',lunarTip:'Calculate based on Lunar calendar',yes:'Yes',no:'No',timezone:'Timezone',disabledFilter:'DISABLED',policyConfig:'Policy Config',policyNotify:'Notify Days',policyAuto:'Auto Renew',policyRenewDay:'Renew Days',useGlobal:'Global Default',autoRenewOnDesc:'Auto Renew when overdue',autoRenewOffDesc:'Auto Disable when overdue'}
+            tag:{alert:'ALERT',renew:'CYCLED',disable:'DISABLED',normal:'NORMAL'},msg:{confirmRenew: 'Update [%s] start date to today?',renewSuccess: 'Updated! Date changed: %s -> %t',tokenReset: 'Token Reset. Update your calendar apps.', copyOk: 'Link Copied', exportSuccess: 'Backup Downloaded',importSuccess: 'Restore Success, Refreshing...',importFail: 'Import Failed, Check File Format',passReq:'Password Required',saved:'Data Saved',saveFail:'Save Failed',cleared:'Cleared',clearFail:'Clear Failed',loginFail:'Access Denied',loadLogFail:'Load Failed',confirmDel:'Confirm Delete?',dateError:'Start date cannot be earlier than create date',nameReq:'Name Required',nameExist:'Name already exists',futureError:'Start date cannot be in the future',serviceDisabled:'Event Disabled',serviceEnabled:'Event Enabled',execFinish: 'EXECUTION FINISHED!'},tags:'TAGS',tagPlaceholder:'Birthday, Anniversary, Festival...',searchPlaceholder:'Search...',tagsCol:'TAGS',tagAll:'ALL',useLunar:'Lunar Cycle',lunarTip:'Calculate based on Lunar calendar (for lunar birthday)',yes:'Yes',no:'No',timezone:'Timezone',disabledFilter:'DISABLED',policyConfig:'Policy Config',policyNotify:'Notify Days',policyAuto:'Auto Cycle',policyRenewDay:'Cycle Days',useGlobal:'Global Default',autoRenewOnDesc:'Auto cycle when overdue',autoRenewOffDesc:'Auto disable when overdue'}
         };
         const LUNAR={info:[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04bd7,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520],gan:'甲乙丙丁戊己庚辛壬癸'.split(''),zhi:'子丑寅卯辰巳午未申酉戌亥'.split(''),months:'正二三四五六七八九十冬腊'.split(''),days:'初一,初二,初三,初四,初五,初六,初七,初八,初九,初十,十一,十二,十三,十四,十五,十六,十七,十八,十九,二十,廿一,廿二,廿三,廿四,廿五,廿六,廿七,廿八,廿九,三十'.split(','),lYearDays(y){let s=348;for(let i=0x8000;i>0x8;i>>=1)s+=(this.info[y-1900]&i)?1:0;return s+this.leapDays(y)},leapDays(y){if(this.leapMonth(y))return(this.info[y-1900]&0x10000)?30:29;return 0},leapMonth(y){return this.info[y-1900]&0xf},monthDays(y,m){return(this.info[y-1900]&(0x10000>>m))?30:29},solar2lunar(y,m,d){if(y<1900||y>2100)return null;const base=new Date(1900,0,31),obj=new Date(y,m-1,d);let offset=Math.round((obj-base)/86400000);let ly=1900,temp=0;for(;ly<2101&&offset>0;ly++){temp=this.lYearDays(ly);offset-=temp}if(offset<0){offset+=temp;ly--}let lm=1,leap=this.leapMonth(ly),isLeap=false;for(;lm<13&&offset>0;lm++){if(leap>0&&lm===(leap+1)&&!isLeap){--lm;isLeap=true;temp=this.leapDays(ly)}else{temp=this.monthDays(ly,lm)}if(isLeap&&lm===(leap+1))isLeap=false;offset-=temp}if(offset===0&&leap>0&&lm===leap+1){if(isLeap)isLeap=false;else{isLeap=true;--lm}}if(offset<0){offset+=temp;--lm}const ld=offset+1,gIdx=(ly-4)%10,zIdx=(ly-4)%12;const yStr=this.gan[gIdx<0?gIdx+10:gIdx]+this.zhi[zIdx<0?zIdx+12:zIdx];const mStr=(isLeap?'闰':'')+this.months[lm-1]+'月';return{year:ly,month:lm,day:ld,isLeap,yearStr:yStr,monthStr:mStr,dayStr:this.days[ld-1],fullStr:yStr+'年'+mStr+this.days[ld-1]}}};
         
@@ -2379,7 +2388,61 @@ const HTML = `<!DOCTYPE html>
                     } catch (e) { return isoStr; }
                 };                
 
-                const openAdd = () => { isEdit.value=false; const d=new Date().toISOString().split('T')[0]; form.value={id:Date.now().toString(),name:'',createDate:d,lastRenewDate:d,intervalDays:30,cycleUnit:'day',type:'cycle',enabled:true,tags:[],useLunar:false, notifyDays:3, notifyTime: '08:00', autoRenew:true, autoRenewDays:3}; dialogVisible.value=true; };
+                // 预设节日库
+                const presetFestivals = [
+                    { id: 'spring', nameZh: '春节', nameEn: 'Chinese New Year', icon: '🧧', date: '农历正月初一', lunar: true, month: 1, day: 1, tags: ['节日'] },
+                    { id: 'lantern', nameZh: '元宵节', nameEn: 'Lantern Festival', icon: '🏮', date: '农历正月十五', lunar: true, month: 1, day: 15, tags: ['节日'] },
+                    { id: 'qingming', nameZh: '清明节', nameEn: 'Qingming Festival', icon: '🌿', date: '4月5日', lunar: false, month: 4, day: 5, tags: ['节日'] },
+                    { id: 'dragon', nameZh: '端午节', nameEn: 'Dragon Boat', icon: '🐉', date: '农历五月初五', lunar: true, month: 5, day: 5, tags: ['节日'] },
+                    { id: 'qixi', nameZh: '七夕节', nameEn: 'Qixi Festival', icon: '💕', date: '农历七月初七', lunar: true, month: 7, day: 7, tags: ['节日'] },
+                    { id: 'mid', nameZh: '中秋节', nameEn: 'Mid-Autumn', icon: '🥮', date: '农历八月十五', lunar: true, month: 8, day: 15, tags: ['节日'] },
+                    { id: 'chongyang', nameZh: '重阳节', nameEn: 'Double Ninth', icon: '🏔️', date: '农历九月初九', lunar: true, month: 9, day: 9, tags: ['节日'] },
+                    { id: 'newyear', nameZh: '元旦', nameEn: 'New Year', icon: '🎉', date: '1月1日', lunar: false, month: 1, day: 1, tags: ['节日'] },
+                    { id: 'valentine', nameZh: '情人节', nameEn: "Valentine's Day", icon: '❤️', date: '2月14日', lunar: false, month: 2, day: 14, tags: ['节日'] },
+                    { id: 'women', nameZh: '妇女节', nameEn: "Women's Day", icon: '👩', date: '3月8日', lunar: false, month: 3, day: 8, tags: ['节日'] },
+                    { id: 'labor', nameZh: '劳动节', nameEn: 'Labor Day', icon: '💪', date: '5月1日', lunar: false, month: 5, day: 1, tags: ['节日'] },
+                    { id: 'mother', nameZh: '母亲节', nameEn: "Mother's Day", icon: '👩‍👧', date: '5月第2周日', lunar: false, month: 5, day: 12, tags: ['节日'] },
+                    { id: 'children', nameZh: '儿童节', nameEn: "Children's Day", icon: '🧒', date: '6月1日', lunar: false, month: 6, day: 1, tags: ['节日'] },
+                    { id: 'father', nameZh: '父亲节', nameEn: "Father's Day", icon: '👨‍👧', date: '6月第3周日', lunar: false, month: 6, day: 16, tags: ['节日'] },
+                    { id: 'national', nameZh: '国庆节', nameEn: 'National Day', icon: '🇨🇳', date: '10月1日', lunar: false, month: 10, day: 1, tags: ['节日'] },
+                    { id: 'halloween', nameZh: '万圣节', nameEn: 'Halloween', icon: '🎃', date: '10月31日', lunar: false, month: 10, day: 31, tags: ['节日'] },
+                    { id: 'thanksgiving', nameZh: '感恩节', nameEn: 'Thanksgiving', icon: '🦃', date: '11月第4周四', lunar: false, month: 11, day: 28, tags: ['节日'] },
+                    { id: 'christmas', nameZh: '圣诞节', nameEn: 'Christmas', icon: '🎄', date: '12月25日', lunar: false, month: 12, day: 25, tags: ['节日'] },
+                ];
+                
+                const handleAddCommand = (cmd) => {
+                    if (cmd === 'custom') {
+                        openAdd();
+                        return;
+                    }
+                    const festival = presetFestivals.find(f => f.id === cmd);
+                    if (!festival) return;
+                    
+                    isEdit.value = false;
+                    const year = new Date().getFullYear();
+                    // 对于农历节日，使用公历日期占位，系统会根据 useLunar 自动计算
+                    const startDate = year + '-' + String(festival.month).padStart(2,'0') + '-' + String(festival.day).padStart(2,'0');
+                    
+                    form.value = {
+                        id: Date.now().toString(),
+                        name: lang.value === 'zh' ? festival.nameZh : festival.nameEn,
+                        createDate: startDate,
+                        lastRenewDate: startDate,
+                        intervalDays: 1,
+                        cycleUnit: 'year',
+                        type: 'cycle',
+                        enabled: true,
+                        tags: festival.tags,
+                        useLunar: festival.lunar,
+                        notifyDays: 3,
+                        notifyTime: '08:00',
+                        autoRenew: true,
+                        autoRenewDays: 3
+                    };
+                    dialogVisible.value = true;
+                };
+                
+                const openAdd = () => { isEdit.value=false; const d=new Date().toISOString().split('T')[0]; form.value={id:Date.now().toString(),name:'',createDate:d,lastRenewDate:d,intervalDays:1,cycleUnit:'year',type:'cycle',enabled:true,tags:[],useLunar:false, notifyDays:3, notifyTime: '08:00', autoRenew:true, autoRenewDays:3}; dialogVisible.value=true; };
                 const editItem = (row) => { isEdit.value=true; form.value={...row,cycleUnit:row.cycleUnit||'day',tags:[...(row.tags||[])],useLunar:!!row.useLunar, notifyDays:(row.notifyDays!==undefined?row.notifyDays:3), notifyTime: (row.notifyTime || '08:00'), autoRenew:row.autoRenew!==false, autoRenewDays:(row.autoRenewDays!==undefined?row.autoRenewDays:3)}; dialogVisible.value=true; };
                 const openSettings = () => { 
                     settingsForm.value = JSON.parse(JSON.stringify(settings.value)); 
@@ -2544,6 +2607,7 @@ const HTML = `<!DOCTYPE html>
                     dialogVisible, settingsVisible, historyVisible, historyLoading, historyLogs, checking, logs, displayLogs, form, settingsForm, isEdit,
                     expiringCount, expiredCount, currentTag, allTags, filteredList, searchKeyword, logVisible,formatLogTime,Upload, Download,
                     openAdd, editItem, deleteItem, saveItem, openSettings, saveSettings, runCheck, openHistoryLogs, clearLogs, toggleEnable,importRef, exportData, triggerImport, handleImportFile,
+                    presetFestivals, handleAddCommand, ArrowDown, LUNAR,
                     Edit, Delete, Plus, VideoPlay, Setting, Bell, Document, Lock, Monitor, SwitchButton, Calendar, Timer, Files, AlarmClock, Warning, Search, Cpu, Link, Message, Promotion, Iphone, Moon, Sunny,
                     getDaysClass, formatDaysLeft, getTagClass, getLogColor, getLunarStr, getYearGanZhi, getSmartLunarText, getMonthStr, getTagCount, tableRowClassName, channelMap, toggleChannel, testChannel, testing,
                     calendarUrl, copyIcsUrl, resetCalendarToken,manualRenew,RefreshRight,timezoneList,currentPage, pageSize, pagedList,
